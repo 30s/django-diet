@@ -10,6 +10,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 setup(
     name='django-diet',
     version='0.1',
+    install_requires=['wechatpy==0.7.5'],
     packages=['diet'],
     include_package_data=True,
     license='The MIT License',  # example license
