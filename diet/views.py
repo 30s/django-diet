@@ -21,6 +21,10 @@ class Wechat(View):
 
         return super(Wechat, self).dispatch(*args, **kwargs)
 
+    def get(self, request):
+        echo_str = request.GET.get('echostr', '')
+        return HttpResponse(echo_str)
+
     def post(self, request):
         msg = parse_message(request.body)
         reply = TextReply(content=u'hello', message=msg)
