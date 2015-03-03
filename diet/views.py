@@ -35,11 +35,11 @@ class DietManager(object):
             return self.week_report(openid)
 
     def week_report(self, openid):
-        now = datetime.now()
+        now = datetime.now().date()
         start = now - timedelta(days=now.weekday())
         diets = Diet.objects.filter(openid=openid, created_at__gt=start)
         report = Counter([i.food for i in diets])
-        return MESSAGE_WEEK_REPORT + u'\r\n'.join([u'{0}: {1}'.format(food, cnt) for food, cnt in report.iteritems() if cnt > 3])
+        return MESSAGE_WEEK_REPORT + u'\r\n'.join([u'{0}: {1}'.format(food, cnt) for food, cnt in report.iteritems()])
 
     def reply(self, msg):
         reply = TextReply(content=MESSAGE_HELLO, message=msg)
