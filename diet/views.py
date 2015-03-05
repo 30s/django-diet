@@ -1,8 +1,12 @@
+# coding: utf-8
+
 from datetime import datetime, timedelta
 from collections import Counter
 
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.views.generic import View
+from django.views.generic.base import TemplateView
 from django.conf import settings
 
 from wechatpy.utils import check_signature
@@ -12,10 +16,20 @@ from wechatpy import parse_message, create_reply
 
 from diet.models import Diet
 
-MESSAGE_HELLO = u'I will manage diet info for you, sir!'
-MESSAGE_WEEK_REPORT = u'Week Report: \r\n'
+MESSAGE_HELLO = u'''欢迎使用不挑食！
+请直接回复您吃过的食物或者喝的饮料进行记录。
+比如您刚刚喝了一瓶牛奶，就回复：牛奶。
+请勿回复除食物或饮料以外的内容。'''
+MESSAGE_WEEK_REPORT = u'您本周的饮食列表: \r\n'
+MESSAGE_LINKS =u'''\r\n
+<a href="{domain}{intro}">关于我们</a>'''
 
 class DietManager(object):
+    
+    def get_links(self):
+        return MESSAGE_LINKS.format(
+            domain=settings.DOMAIN, 
+            intro=reverse('intro'))
 
     def hello(self):
         return MESSAGE_HELLO
@@ -32,7 +46,7 @@ class DietManager(object):
     def analytic_diet(self, content, openid):
         cmd = content.strip()
         if cmd == 'week':
-            return self.week_report(openid)
+            return self.week_report(openid) + self.get_links()
 
     def week_report(self, openid):
         now = datetime.now().date()
@@ -73,3 +87,8 @@ class Wechat(View):
         msg = parse_message(request.body)
         dm = DietManager()
         return HttpResponse(dm.reply(msg).render())
+
+
+class Intro(TemplateView):
+
+    template_name = "diet/intro.html"
