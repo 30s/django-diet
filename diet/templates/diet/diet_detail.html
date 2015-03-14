@@ -1,0 +1,87 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>不挑食</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="{%static 'diet/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{%static 'diet/css/main.css' %}" rel="stylesheet">
+    <script src="{%static 'diet/js/jquery-2.1.3.min.js' %}"></script>
+    <script src="{%static 'diet/bootstrap/js/bootstrap.min.js' %}"></script>
+  </head>
+
+  <body>
+
+    <div class="container">
+
+      <div class="row mt20">
+        <div class="col-md-12">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <td>时间</td>
+                <td>食物</td>
+                <td>操作</td>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in diets %}
+              <tr>
+                <td>{{ i.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ i.food }}</td>
+                <td><a href="javascript:void(0);" class="btn-del-diet" data-toggle="modal" data-target="#dlg-del-diet">删除</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <nav>
+            <ul class="pager">
+              {% if diets.has_previous %}
+              <li><a href="?openid={{ openid }}&page={{ diets.previous_page_number }}">上一页</a></li>
+              {% endif %}
+              {% if diets.has_next %}
+              <li><a href="?openid={{ openid }}&page={{ diets.next_page_number }}">下一页</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      </div>      
+
+      <footer class="footer mt20">
+	<p class="text-center">
+	  &copy; 不挑食 2015
+	</p>
+	<p class="text-center">
+	  <a href="http://www.freepik.com/free-photos-vectors/food"><small> vector designed by Freepik</small></a>
+	</p>
+      </footer>
+
+    </div>
+    <!-- /container -->
+
+    <!-- Modal -->
+    <div class="modal fade" id="dlg-del-diet" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">删除记录</h4>
+          </div>
+          <div class="modal-body">
+            未实现!
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-primary">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

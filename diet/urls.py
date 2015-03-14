@@ -5,5 +5,6 @@ from diet import views
 urlpatterns = patterns(
     '',
     url(r'^wechat$', csrf_exempt(views.Wechat.as_view()), name="wechat"),
-    url(r'intro$', views.Intro.as_view(), name="intro")
+    url(r'intro$', views.Intro.as_view(), name="intro"),
+    url(r'detail$', views.DietDetail.as_view(), name="diet_detail")
 )

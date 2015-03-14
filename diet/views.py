@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 from collections import Counter
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.http import HttpResponse, Http404
 from django.views.generic import View
 from django.views.generic.base import TemplateView
 from django.conf import settings
@@ -20,15 +21,18 @@ MESSAGE_HELLO = u'''欢迎使用不挑食！
 请直接回复您吃过的食物或者喝的饮料进行记录。
 比如您刚刚喝了一瓶牛奶，就回复：牛奶。
 请勿回复除食物或饮料以外的内容。'''
-MESSAGE_WEEK_REPORT = u'您本周的饮食列表: \r\n'
+MESSAGE_WEEK_REPORT = u'您本周的饮食多样性为: {total}'
 MESSAGE_LINKS =u'''\r\n
+<a href="{domain}{detail}?openid={openid}">饮食详情</a>
 <a href="{domain}{intro}">关于我们</a>'''
 
 class DietManager(object):
     
-    def get_links(self):
+    def get_links(self, openid):
         return MESSAGE_LINKS.format(
-            domain=settings.DOMAIN, 
+            domain=settings.DOMAIN,
+            detail=reverse('diet_detail'),
+            openid=openid,
             intro=reverse('intro'))
 
     def hello(self):
@@ -46,14 +50,14 @@ class DietManager(object):
     def analytic_diet(self, content, openid):
         cmd = content.strip()
         if cmd == 'week':
-            return self.week_report(openid) + self.get_links()
+            return self.week_report(openid) + self.get_links(openid)
 
     def week_report(self, openid):
         now = datetime.now().date()
         start = now - timedelta(days=now.weekday())
         diets = Diet.objects.filter(openid=openid, created_at__gt=start)
         report = Counter([i.food for i in diets])
-        return MESSAGE_WEEK_REPORT + u'\r\n'.join([u'{0}: {1}'.format(food, cnt) for food, cnt in report.iteritems()])
+        return MESSAGE_WEEK_REPORT.format(total=len(report.keys()))
 
     def reply(self, msg):
         reply = TextReply(content=MESSAGE_HELLO, message=msg)
@@ -92,3 +96,28 @@ class Wechat(View):
 class Intro(TemplateView):
 
     template_name = "diet/intro.html"
+
+
+class DietDetail(TemplateView):
+
+    template_name = "diet/diet_detail.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super(DietDetail, self).get_context_data(**kwargs)
+        # TODO is it not safe to use openid directly
+        openid = self.request.GET.get('openid')
+        if not openid:
+            raise Http404
+        diet_list = Diet.objects.filter(openid=openid).order_by('-created_at')
+        paginator = Paginator(diet_list, 20)
+
+        page = self.request.GET.get('page')
+        try:
+            diets = paginator.page(page)
+        except PageNotAnInteger:
+            diets = paginator.page(1)
+        except EmptyPage:
+            diets = paginator.page(paginator.num_pages)
+        ctx['openid'] = openid
+        ctx['diets'] = diets
+        return ctx
