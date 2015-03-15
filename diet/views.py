@@ -9,6 +9,7 @@ from django.http import HttpResponse, Http404
 from django.views.generic import View
 from django.views.generic.base import TemplateView
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 
 from wechatpy.utils import check_signature
 from wechatpy.exceptions import InvalidSignatureException
@@ -55,7 +56,7 @@ class DietManager(object):
     def week_report(self, openid):
         now = datetime.now().date()
         start = now - timedelta(days=now.weekday())
-        diets = Diet.objects.filter(openid=openid, created_at__gt=start)
+        diets = Diet.objects.filter(openid=openid, created_at__gt=start, deleted=False)
         report = Counter([i.food for i in diets])
         return MESSAGE_WEEK_REPORT.format(total=len(report.keys()))
 
@@ -108,7 +109,7 @@ class DietDetail(TemplateView):
         openid = self.request.GET.get('openid')
         if not openid:
             raise Http404
-        diet_list = Diet.objects.filter(openid=openid).order_by('-created_at')
+        diet_list = Diet.objects.filter(openid=openid, deleted=False).order_by('-created_at')
         paginator = Paginator(diet_list, 20)
 
         page = self.request.GET.get('page')
@@ -121,3 +122,11 @@ class DietDetail(TemplateView):
         ctx['openid'] = openid
         ctx['diets'] = diets
         return ctx
+
+    def post(self, request, *args, **kwargs):
+        openid = request.POST.get('openid')
+        diet_id = request.POST.get('diet-id')
+        diet = get_object_or_404(Diet, openid=openid, id=diet_id)
+        diet.deleted = True
+        diet.save()
+        return self.get(request, *args, **kwargs)

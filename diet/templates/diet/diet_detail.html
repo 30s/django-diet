@@ -34,7 +34,7 @@
               <tr>
                 <td>{{ i.created_at|date:"Y-m-d H:i" }}</td>
                 <td>{{ i.food }}</td>
-                <td><a href="javascript:void(0);" class="btn-del-diet" data-toggle="modal" data-target="#dlg-del-diet">删除</a></td>
+                <td><a href="javascript:void(0);" class="btn-del-diet" data-toggle="modal" data-target="#dlg-del-diet" openid="{{ i.openid }}" diet-id="{{ i.id }}">删除</a></td>
               </tr>
               {% endfor %}
             </tbody>
@@ -73,15 +73,36 @@
             <h4 class="modal-title" id="myModalLabel">删除记录</h4>
           </div>
           <div class="modal-body">
-            未实现!
+            <form action="" method="post">
+              {% csrf_token %}
+              <input name="openid" type="hidden" value=""/>
+              <input name="diet-id" type="hidden" value=""/>
+              <p id="prompt"></p>
+            </form>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-            <button type="button" class="btn btn-primary">删除</button>
+            <button type="button" class="btn btn-primary" id="btn-del">删除</button>
           </div>
         </div>
       </div>
     </div>
 
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $(".btn-del-diet").click(function() {
+          food = $("td:nth-child(2)", $(this).parents("tr")).text();
+          $("#dlg-del-diet #prompt").text("您确定要删除：" + food + "？");
+          openid = $(this).attr('openid');
+          diet_id = $(this).attr('diet-id');
+          $("#dlg-del-diet form :input[name='openid']").val(openid);
+          $("#dlg-del-diet form :input[name='diet-id']").val(diet_id);
+        });
+        
+        $("#dlg-del-diet #btn-del").click(function() {
+          $("#dlg-del-diet form").submit();
+        });
+      });
+    </script>
   </body>
 </html>
